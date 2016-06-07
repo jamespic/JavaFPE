@@ -33,6 +33,8 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -227,6 +229,7 @@ public class FPE
     private static class NumberTheory
     {
     	private static final BigInteger MAX_PRIME = BigInteger.valueOf(65535);
+        private static final ConcurrentMap<BigInteger, BigInteger[]> cache = new ConcurrentHashMap<>();
     	/// <summary>
         /// Factor n into a and b which are as close together as possible.
         /// Assumes n is composed mostly of small factors which is the case for
@@ -240,6 +243,8 @@ public class FPE
         /// <param name="b"></param>
         public static BigInteger[] factor(BigInteger n) throws Exception
         {
+            BigInteger origN = n;
+            if (cache.containsKey(n)) return cache.get(n);
         	BigInteger a = BigInteger.ONE;
         	BigInteger b = BigInteger.ONE;
             
@@ -288,8 +293,10 @@ public class FPE
                 throw new Exception("Could not factor n for use in FPE");
             }
             
-            // return 
-            return new BigInteger[]{ a,b };
+            // return
+            BigInteger[] result = new BigInteger[]{a, b};
+            cache.put(origN, result);
+            return result;
         }
         
     	/// <summary>
